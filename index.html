@@ -1,321 +1,624 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Drawing App</title>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- React and ReactDOM CDNs (updated to latest stable versions) -->
-  <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
-  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
-  <!-- Babel CDN for JSX transformation -->
-  <script src="https://unpkg.com/@babel/standalone@7.25.6/babel.min.js"></script>
-  <style>
-    canvas {
-      border: 2px solid #4b5563;
-      border-radius: 8px;
-      cursor: crosshair;
-      background: white; /* Ensure canvas has a visible background */
-    }
-    .toolbox {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      padding: 1rem;
-      background: #1f2937;
-      border-radius: 8px;
-      margin-bottom: 1rem;
-    }
-    button, input {
-      transition: all 0.2s ease-in-out;
-    }
-    button:hover, input:hover {
-      transform: scale(1.05);
-    }
-    .error {
-      color: red;
-      font-weight: bold;
-      margin: 1rem;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NezExpress - Your Travel Buddy & Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            line-height: 1.6;
+            color: #333;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 250px;
+            height: 100vh;
+            background: #1a1a1a;
+            color: white;
+            padding: 2rem 1rem;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: #f0c14b;
+            color: #111;
+            border: none;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            z-index: 1001;
+            border-radius: 5px;
+        }
+
+        .sidebar h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 0.5rem 0;
+            font-size: 1.1rem;
+            transition: color 0.3s;
+        }
+
+        .sidebar a:hover {
+            color: #f0c14b;
+        }
+
+        .sidebar-search {
+            margin-top: 1.5rem;
+        }
+
+        .sidebar-search input {
+            width: 100%;
+            padding: 0.5rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        /* Navigation */
+        nav {
+            background: rgba(0, 0, 0, 0.8);
+            position: fixed;
+            width: 100%;
+            padding: 1rem 0;
+            z-index: 900;
+            transition: background 0.3s;
+        }
+
+        nav.scrolled {
+            background: rgba(0, 0, 0, 0.95);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            color: white;
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin: 0 1rem;
+            font-size: 1.1rem;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #f0c14b;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            background: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e') no-repeat center center/cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+            position: relative;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .hero-content {
+            z-index: 1;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            animation: fadeInDown 1s ease;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            animation: fadeInUp 1s ease 0.5s;
+            animation-fill-mode: both;
+        }
+
+        .cta-button {
+            background: #f0c14b;
+            color: #111;
+            padding: 0.8rem 2rem;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        .cta-button:hover {
+            background: #e6b800;
+        }
+
+        /* Destinations Section */
+        .destinations {
+            padding: 4rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .destinations h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .destination-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .destination-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .destination-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .destination-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+
+        .destination-card:hover img {
+            transform: scale(1.1);
+        }
+
+        .destination-info {
+            padding: 1rem;
+            background: white;
+        }
+
+        .destination-info h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .destination-info p {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .destination-info .price {
+            color: #f0c14b;
+            font-weight: bold;
+            margin-top: 0.5rem;
+        }
+
+        /* Booking Form */
+        .booking {
+            padding: 4rem 2rem;
+            background: #f9f9f9;
+        }
+
+        .booking h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .booking-form {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #f0c14b;
+        }
+
+        .submit-button {
+            background: #f0c14b;
+            color: #111;
+            padding: 0.8rem;
+            width: 100%;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .submit-button:hover {
+            background: #e6b800;
+        }
+
+        .error {
+            color: red;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        /* Footer */
+        footer {
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .nav-links a {
+                margin: 0 0.5rem;
+                font-size: 1rem;
+            }
+
+            .destination-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                width: 200px;
+            }
+        }
+    </style>
 </head>
-<body class="bg-gray-900 flex flex-col items-center justify-center min-h-screen text-white">
-  <div id="root"></div>
-  <div id="error" className="error"></div>
-  <script type="text/babel">
-    // Import React hooks
-    const { useState, useEffect, useRef } = React;
-
-    // Komponen utama aplikasi gambar
-    const DrawingApp = () => {
-      // Referensi ke elemen canvas
-      const canvasRef = useRef(null);
-      // State untuk status menggambar
-      const [isDrawing, setIsDrawing] = useState(false);
-      // State untuk warna kuas
-      const [color, setColor] = useState('#000000');
-      // State untuk ukuran kuas
-      const [brushSize, setBrushSize] = useState(5);
-      // State untuk mode penghapus
-      const [isEraser, setIsEraser] = useState(false);
-      // State untuk menyimpan riwayat gambar (undo/redo)
-      const [history, setHistory] = useState([]);
-      // State untuk posisi index riwayat saat ini
-      const [historyIndex, setHistoryIndex] = useState(-1);
-      // State untuk pesan error
-      const [error, setError] = useState('');
-
-      // Inisialisasi canvas saat komponen pertama kali dirender
-      useEffect(() => {
-        const canvas = canvasRef.current;
-        if (!canvas) {
-          setError('Canvas element not found');
-          console.error('Canvas element not found');
-          return;
-        }
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          setError('Failed to get 2D context');
-          console.error('Failed to get 2D context');
-          return;
-        }
-        try {
-          // Set ukuran canvas
-          canvas.width = 800;
-          canvas.height = 600;
-          // Set ujung garis bulat
-          ctx.lineCap = 'round';
-          ctx.lineJoin = 'round';
-          // Isi background canvas dengan putih
-          ctx.fillStyle = 'white';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          // Simpan state awal ke history
-          saveState();
-          console.log('Canvas initialized successfully');
-        } catch (err) {
-          setError('Error initializing canvas: ' + err.message);
-          console.error('Error initializing canvas:', err);
-        }
-      }, []);
-
-      // Fungsi untuk menyimpan snapshot canvas ke history
-      const saveState = () => {
-        try {
-          const canvas = canvasRef.current;
-          // Potong history jika user melakukan undo lalu menggambar lagi
-          const newHistory = history.slice(0, historyIndex + 1);
-          // Simpan gambar canvas dalam bentuk dataURL
-          newHistory.push(canvas.toDataURL());
-          setHistory(newHistory);
-          setHistoryIndex(newHistory.length - 1);
-          console.log('State saved, history length:', newHistory.length);
-        } catch (err) {
-          setError('Error saving state: ' + err.message);
-          console.error('Error saving state:', err);
-        }
-      };
-
-      // Fungsi undo: kembali ke gambar sebelumnya
-      const undo = () => {
-        if (historyIndex > 0) {
-          setHistoryIndex(prev => prev - 1);
-          const canvas = canvasRef.current;
-          const ctx = canvas.getContext('2d');
-          const img = new Image();
-          img.src = history[historyIndex - 1];
-          img.onload = () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(img, 0, 0);
-            console.log('Undo to index:', historyIndex - 1);
-          };
-          img.onerror = () => {
-            setError('Error loading undo image');
-            console.error('Error loading undo image');
-          };
-        }
-      };
-
-      // Fungsi redo: maju ke gambar berikutnya
-      const redo = () => {
-        if (historyIndex < history.length - 1) {
-          setHistoryIndex(prev => prev + 1);
-          const canvas = canvasRef.current;
-          const ctx = canvas.getContext('2d');
-          const img = new Image();
-          img.src = history[historyIndex + 1];
-          img.onload = () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(img, 0, 0);
-            console.log('Redo to index:', historyIndex + 1);
-          };
-          img.onerror = () => {
-            setError('Error loading redo image');
-            console.error('Error loading redo image');
-          };
-        }
-      };
-
-      // Mulai menggambar (saat mouse/touch ditekan)
-      const startDrawing = (e) => {
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext('2d');
-        try {
-          ctx.beginPath();
-          ctx.lineWidth = brushSize;
-          ctx.strokeStyle = isEraser ? 'white' : color;
-          const { x, y } = getCoordinates(e);
-          ctx.moveTo(x, y);
-          setIsDrawing(true);
-          console.log('Drawing started at:', x, y);
-        } catch (err) {
-          setError('Error starting drawing: ' + err.message);
-          console.error('Error starting drawing:', err);
-        }
-      };
-
-      // Proses menggambar (saat mouse/touch digerakkan)
-      const draw = (e) => {
-        if (!isDrawing) return;
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext('2d');
-        try {
-          const { x, y } = getCoordinates(e);
-          ctx.lineTo(x, y);
-          ctx.stroke();
-        } catch (err) {
-          setError('Error during drawing: ' + err.message);
-          console.error('Error during drawing:', err);
-        }
-      };
-
-      // Selesai menggambar (saat mouse/touch dilepas)
-      const stopDrawing = () => {
-        if (isDrawing) {
-          const canvas = canvasRef.current;
-          canvas.getContext('2d').closePath();
-          setIsDrawing(false);
-          saveState();
-          console.log('Drawing stopped');
-        }
-      };
-
-      // Mendapatkan posisi x, y relatif terhadap canvas
-      const getCoordinates = (e) => {
-        const canvas = canvasRef.current;
-        const rect = canvas.getBoundingClientRect();
-        let x, y;
-        if (e.type.includes('touch')) {
-          x = e.touches[0].clientX - rect.left;
-          y = e.touches[0].clientY - rect.top;
-        } else {
-          x = e.clientX - rect.left;
-          y = e.clientY - rect.top;
-        }
-        return { x, y };
-      };
-
-      // Menghapus seluruh gambar di canvas
-      const clearCanvas = () => {
-        try {
-          const canvas = canvasRef.current;
-          const ctx = canvas.getContext('2d');
-          ctx.fillStyle = 'white';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          saveState();
-          console.log('Canvas cleared');
-        } catch (err) {
-          setError('Error clearing canvas: ' + err.message);
-          console.error('Error clearing canvas:', err);
-        }
-      };
-
-      // Mengaktifkan/menonaktifkan mode penghapus
-      const toggleEraser = () => {
-        setIsEraser(!isEraser);
-        console.log('Eraser toggled:', !isEraser);
-      };
-
-      // Render UI aplikasi
-      return (
-        <div className="flex flex-col items-center">
-          {/* Tampilkan error jika ada */}
-          {error && <div className="error">{error}</div>}
-          {/* Toolbox: warna, ukuran kuas, eraser, undo, redo, clear */}
-          <div className="toolbox">
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-semibold">Color:</label>
-              <input
-                type="color"
-                value={color}
-                onChange={(e) => setColor(e.target.value)}
-                className="w-10 h-10 rounded"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-semibold">Brush Size:</label>
-              <input
-                type="range"
-                min="1"
-                max="50"
-                value={brushSize}
-                onChange={(e) => setBrushSize(e.target.value)}
-                className="w-32"
-              />
-              <span>{brushSize}px</span>
-            </div>
-            <button
-              onClick={toggleEraser}
-              className={`px-4 py-2 rounded ${isEraser ? 'bg-red-500' : 'bg-blue-500'} hover:bg-opacity-80`}
-            >
-              {isEraser ? 'Switch to Brush' : 'Eraser'}
-            </button>
-            <button
-              onClick={undo}
-              disabled={historyIndex <= 0}
-              className="px-4 py-2 bg-gray-500 rounded disabled:opacity-50 hover:bg-opacity-80"
-            >
-              Undo
-            </button>
-            <button
-              onClick={redo}
-              disabled={historyIndex >= history.length - 1}
-              className="px-4 py-2 bg-gray-500 rounded disabled:opacity-50 hover:bg-opacity-80"
-            >
-              Redo
-            </button>
-            <button
-              onClick={clearCanvas}
-              className="px-4 py-2 bg-red-600 rounded hover:bg-opacity-80"
-            >
-              Clear Canvas
-            </button>
-          </div>
-          {/* Area canvas untuk menggambar */}
-          <canvas
-            ref={canvasRef}
-            onMouseDown={startDrawing}
-            onMouseMove={draw}
-            onMouseUp={stopDrawing}
-            onMouseOut={stopDrawing}
-            onTouchStart={startDrawing}
-            onTouchMove={draw}
-            onTouchEnd={stopDrawing}
-            className="bg-white"
-          ></canvas>
+<body>
+    <!-- Sidebar -->
+    <button class="sidebar-toggle" id="sidebarToggle">☰ Menu</button>
+    <aside class="sidebar" id="sidebar">
+        <h3>NezExpress</h3>
+        <a href="#home">Home</a>
+        <a href="#destinations">Destinations</a>
+        <a href="#booking">Book Now</a>
+        <a href="#contact">Contact</a>
+        <div class="sidebar-search">
+            <input type="text" placeholder="Search destinations..." id="searchInput">
         </div>
-      );
-    };
+    </aside>
 
-    // Render komponen DrawingApp ke elemen root
-    try {
-      const root = ReactDOM.createRoot(document.getElementById('root'));
-      root.render(<DrawingApp />);
-      console.log('React app rendered');
-    } catch (err) {
-      document.getElementById('error').innerText = 'Error rendering app: ' + err.message;
-      console.error('Error rendering app:', err);
-    }
-  </script>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">NezExpress</div>
+            <div class="nav-links">
+                <a href="#home">Home</a>
+                <a href="#destinations">Destinations</a>
+                <a href="#booking">Book Now</a>
+                <a href="#contact">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="hero-content">
+            <h1>Start looking around the world with us</h1>
+            <p>Explore those beautiful place and destinations then create unforgettable memories with NezXpress.</p>
+            <a href="#booking" class="cta-button">Plan Your Trip now!</a>
+        </div>
+    </section>
+
+    <!-- Destinations Section -->
+    <section class="destinations" id="destinations">
+        <h2>Popular Destinations</h2>
+        <div class="destination-grid">
+            <div class="destination-card">
+                <img src="https://images.unsplash.com/photo-1499856871958-5b9627545d1a" alt="Paris">
+                <div class="destination-info">
+                    <h3>Paris, France</h3>
+                    <p>Immerse yourself in the City of Light, with its iconic Eiffel Tower and charming cafes.</p>
+                    <div class="price">From $1,200</div>
+                </div>
+            </div>
+            <div class="destination-card">
+                <img src="https://cdn.audleytravel.com/2478/1770/79/16027396-pura-ulun-danu-bratan-bali.jpg" alt="Bali">
+                <div class="destination-info">
+                    <h3>Bali, Indonesia</h3>
+                    <p>Discover tropical paradise with lush rice terraces and vibrant cultural festivals.</p>
+                    <div class="price">From $900</div>
+                </div>
+            </div>
+            <div class="destination-card">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRMLYh7jRBjiM2rx4frVlb3-1lu5BIzRx8wCA&s" alt="New York">
+                <div class="destination-info">
+                    <h3>New York, USA</h3>
+                    <p>Experience the energy of Times Square and the serenity of Central Park.</p>
+                    <div class="price">From $1,500</div>
+                </div>
+            </div>
+            <div class="destination-card">
+                <img src="https://www.corporatetraveller.com.au/sites/default/files/styles/medium/public/2018-11/CT-Tokyo-LP.jpg?itok=nBKyg7Ee" alt="Tokyo">
+                <div class="destination-info">
+                    <h3>Tokyo, Japan</h3>
+                    <p>Blend of futuristic technology and ancient traditions in a vibrant metropolis.</p>
+                    <div class="price">From $1,800</div>
+                </div>
+            </div>
+            <div class="destination-card">
+                <img src="https://res.cloudinary.com/manawa/image/private/f_auto,c_limit,w_3840,q_auto/uy2qidhrbntj85537glz" alt="Santorini">
+                <div class="destination-info">
+                    <h3>Santorini, Greece</h3>
+                    <p>Marvel at stunning sunsets and whitewashed buildings perched on cliffs.</p>
+                    <div class="price">From $1,400</div>
+                </div>
+            </div>
+            <div class="destination-card">
+                <img src="https://www.go2africa.com/wp-content/uploads/2024/11/Banner--1920x630.jpg" alt="Cape Town">
+                <div class="destination-info">
+                    <h3>Cape Town, South Africa</h3>
+                    <p>Explore Table Mountain and vibrant waterfronts in this scenic city.</p>
+                    <div class="price">From $1,100</div>
+                </div>
+            </div>
+            <div class="destination-card">
+                <img src="https://images.unsplash.com/photo-1533929736458-ca588d08c8be" alt="Machu Picchu">
+                <div class="destination-info">
+                    <h3>Machu Picchu, Peru</h3>
+                    <p>Journey to the ancient Incan ruins nestled in the Andes Mountains.</p>
+                    <div class="price">From $1,600</div>
+                </div>
+            </div>
+            <div class="destination-card">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRKPjqxBSBVodshZptGuaGTZHmWis6JCEDVwA&s" alt="Sydney">
+                <div class="destination-info">
+                    <h3>Sydney, Australia</h3>
+                    <p>Enjoy the iconic Opera House and stunning beaches like Bondi.</p>
+                    <div class="price">From $1,700</div>
+                </div>
+            </div>
+            <div class="destination-card">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQrqYiWO_sploGlc06nVZzo4SwhofeLuQVbYA&s" alt="Reykjavik">
+                <div class="destination-info">
+                    <h3>Reykjavik, Iceland</h3>
+                    <p>Chase the Northern Lights and soak in geothermal hot springs.</p>
+                    <div class="price">From $1,300</div>
+                </div>
+            </div>
+            <div class="destination-card">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTZrXaBwL14lerCKyPFjj4jYGyvNxIcGQzWjw&s" alt="Kyoto">
+                <div class="destination-info">
+                    <h3>Kyoto, Japan</h3>
+                    <p>Discover serene temples and vibrant cherry blossoms in spring.</p>
+                    <div class="price">From $1,500</div>
+                </div>
+            </div>
+            <div class="destination-card">
+                <img src="https://www.visitdubai.com/-/media/gathercontent/poi/b/burj-khalifa/fallback-image/poi-burj-khalifa-3-dtcm-jun-2023.jpg" alt="Dubai">
+                <div class="destination-info">
+                    <h3>Dubai, UAE</h3>
+                    <p>Experience luxury in the desert with towering skyscrapers and souks.</p>
+                    <div class="price">From $1,900</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Booking Form -->
+    <section class="booking" id="booking">
+        <h2>Book Your Trip</h2>
+        <form class="booking-form" id="bookingForm">
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" required>
+                <div class="error" id="nameError">Please enter your full name.</div>
+            </div>
+            <div class="form-group">
+                <label for="destination">Destination</label>
+                <select id="destination" required>
+                    <option value="">Select Destination</option>
+                    <option value="paris">Paris, France</option>
+                    <option value="bali">Bali, Indonesia</option>
+                    <option value="newyork">New York, USA</option>
+                    <option value="tokyo">Tokyo, Japan</option>
+                    <option value="santorini">Santorini, Greece</option>
+                    <option value="capetown">Cape Town, South Africa</option>
+                    <option value="machupicchu">Machu Picchu, Peru</option>
+                    <option value="sydney">Sydney, Australia</option>
+                    <option value="reykjavik">Reykjavik, Iceland</option>
+                    <option value="kyoto">Kyoto, Japan</option>
+                    <option value="dubai">Dubai, UAE</option>
+                </select>
+                <div class="error" id="destinationError">Please select a destination.</div>
+            </div>
+            <div class="form-group">
+                <label for="date">Travel Date</label>
+                <input type="date" id="date" required>
+                <div class="error" id="dateError">Please select a travel date.</div>
+            </div>
+            <button type="submit" class="submit-button">Book Now</button>
+        </form>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact">
+        <p>© 2025 ExploreWorld. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Sidebar toggle
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
+
+        // Navigation scroll effect
+        window.addEventListener('scroll', () => {
+            const nav = document.querySelector('nav');
+            if (window.scrollY > 50) {
+                nav.classList.add('scrolled');
+            } else {
+                nav.classList.remove('scrolled');
+            }
+        });
+
+        // Smooth scroll for nav and sidebar links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                target.scrollIntoView({ behavior: 'smooth' });
+                if (sidebar.classList.contains('open')) {
+                    sidebar.classList.remove('open');
+                }
+            });
+        });
+
+        // Form validation
+        const form = document.getElementById('bookingForm');
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            let isValid = true;
+
+            // Reset error messages
+            document.querySelectorAll('.error').forEach(error => error.style.display = 'none');
+
+            // Validate name
+            const name = document.getElementById('name').value;
+            if (!name) {
+                document.getElementById('nameError').style.display = 'block';
+                isValid = false;
+            }
+
+            // Validate destination
+            const destination = document.getElementById('destination').value;
+            if (!destination) {
+                document.getElementById('destinationError').style.display = 'block';
+                isValid = false;
+            }
+
+            // Validate date
+            const date = document.getElementById('date').value;
+            if (!date) {
+                document.getElementById('dateError').style.display = 'block';
+                isValid = false;
+            }
+
+            if (isValid) {
+                alert('Booking submitted successfully!');
+                form.reset();
+            }
+        });
+
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        searchInput.addEventListener('input', () => {
+            const query = searchInput.value.toLowerCase();
+            const cards = document.querySelectorAll('.destination-card');
+            cards.forEach(card => {
+                const title = card.querySelector('h3').textContent.toLowerCase();
+                card.style.display = title.includes(query) ? 'block' : 'none';
+            });
+        });
+
+        // Lazy load images
+        const images = document.querySelectorAll('img');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.src = entry.target.dataset.src || entry.target.src;
+                    observer.unobserve(entry.target);
+                }
+            });
+        });
+
+        images.forEach(img => observer.observe(img));
+    </script>
 </body>
 </html>
