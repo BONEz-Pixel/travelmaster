@@ -277,6 +277,14 @@
             transition: transform 0.3s, box-shadow 0.3s;
         }
 
+        .faq-question {
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
         .faq-category:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
@@ -619,7 +627,7 @@
         </form>
     </section>
         <section class="faq" id="faq">
-        <h2>Your Questions, Answered</h2>
+        <h2>FAQ</h2>
         <div class="faq-grid">
             <div class="faq-category">
                 <h3>Booking & Reservations</h3>
@@ -681,14 +689,29 @@
                     <p>Absolutely! Contact our team to create a multi-destination itinerary tailored to your interests.</p>
                 </details>
             </div>
-            <div class="faq-category">
+            <div class="faq-question">
                 <h3>More answers</h3>
                 <p>If you have more questions, you can ask it below</p>
                 <div class="form-group">
-                    <input type="text" id="name" required>
-                    <label for="name">Your questions</label>
-                    <div class="error" id="nameError">Describe what you want to ask below.</div>
+                    <label for="faq">Your questions</label>
+                    <input type="text" id="faq" required>
+                    <button type="submit" class="submit-button">Submit</button>
                 </div>
+            </div>
+            <div class="faq-category">
+                <h3>Payment & Insurance</h3>
+                <details class="faq-item">
+                    <summary>Do you provide travel insurance?</summary>
+                    <p>We offer comprehensive travel insurance covering cancellations, medical emergencies, and lost luggage. Add it during booking.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How do you ensure traveler safety?</summary>
+                    <p>We partner with trusted local guides and monitor travel advisories to ensure safe and secure experiences.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What happens if my trip is disrupted?</summary>
+                    <p>In case of disruptions, our 24/7 support team will assist with rebooking or alternative arrangements.</p>
+                </details>
             </div>
         </div>
     </section>
