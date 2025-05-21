@@ -241,15 +241,76 @@
         .submit-button:hover {
             background: #e6b800;
         }
-
+        
         .error {
             color: red;
             font-size: 0.9rem;
             margin-top: 0.5rem;
             display: none;
         }
-
+        
         /* Footer */
+        .faq {
+            padding: 4rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .faq h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            color: #333;
+        }
+
+        .faq-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .faq-category {
+            background: #f9f9f9;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .faq-category:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .faq-category h3 {
+            font-size: 1.5rem;
+            color: #f0c14b;
+            margin-bottom: 1rem;
+        }
+
+        .faq-item {
+            margin-bottom: 1rem;
+        }
+
+        .faq-item summary {
+            cursor: pointer;
+            font-weight: bold;
+            color: #333;
+            padding: 0.5rem;
+            border-bottom: 1px solid #ddd;
+            transition: color 0.3s;
+        }
+
+        .faq-item summary:hover {
+            color: #f0c14b;
+        }
+
+        .faq-item p {
+            padding: 1rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
         footer {
             background: #1a1a1a;
             color: white;
@@ -335,19 +396,6 @@
             background: #e6b800;
         }
 
-        .faq-item {
-            margin-bottom: 1rem;
-        }
-
-        .faq-item summary {
-            cursor: pointer;
-            font-weight: bold;
-            color: #ccc;
-        }
-
-        .faq-item summary:hover {
-            color: #f0c14b;
-        }
 
         .footer-bottom {
             text-align: center;
@@ -569,6 +617,71 @@
             </div>
             <button type="submit" class="submit-button">Book Now</button>
         </form>
+    </section>
+        <section class="faq" id="faq">
+        <h2>Your Questions, Answered</h2>
+        <div class="faq-grid">
+            <div class="faq-category">
+                <h3>Booking & Reservations</h3>
+                <details class="faq-item">
+                    <summary>How do I book a trip with NezExpress?</summary>
+                    <p>Visit our "Book Now" section, select your destination, enter your details, and submit the form. You'll receive a confirmation email with further instructions.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Can I modify or cancel my booking?</summary>
+                    <p>Yes, modifications are allowed up to 14 days before departure, and cancellations made 30 days prior receive a full refund. Contact support@nezexpress.com for assistance.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What payment methods are accepted?</summary>
+                    <p>We accept major credit cards, PayPal, and bank transfers. Payment plans are available for select destinations.</p>
+                </details>
+            </div>
+            <div class="faq-category">
+                <h3>Travel Planning</h3>
+                <details class="faq-item">
+                    <summary>Do you offer customized travel itineraries?</summary>
+                    <p>Yes, we provide personalized itineraries based on your preferences. Contact our team to discuss your dream trip.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What should I pack for my trip?</summary>
+                    <p>Packing recommendations vary by destination. After booking, you'll receive a detailed guide tailored to your trip.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Are group discounts available?</summary>
+                    <p>Groups of 5 or more receive up to 15% off. Email us at support@nezexpress.com for group booking details.</p>
+                </details>
+            </div>
+            <div class="faq-category">
+                <h3>Travel Insurance & Safety</h3>
+                <details class="faq-item">
+                    <summary>Do you provide travel insurance?</summary>
+                    <p>We offer comprehensive travel insurance covering cancellations, medical emergencies, and lost luggage. Add it during booking.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How do you ensure traveler safety?</summary>
+                    <p>We partner with trusted local guides and monitor travel advisories to ensure safe and secure experiences.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What happens if my trip is disrupted?</summary>
+                    <p>In case of disruptions, our 24/7 support team will assist with rebooking or alternative arrangements.</p>
+                </details>
+            </div>
+            <div class="faq-category">
+                <h3>Destinations & Experiences</h3>
+                <details class="faq-item">
+                    <summary>Which destinations are most popular?</summary>
+                    <p>Our top destinations include Paris, Bali, Tokyo, and Santorini. Check our Destinations page for more options.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Do you offer adventure or cultural tours?</summary>
+                    <p>We offer both! From hiking Machu Picchu to cultural tours in Kyoto, we have diverse experiences for every traveler.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Can I book multi-destination trips?</summary>
+                    <p>Absolutely! Contact our team to create a multi-destination itinerary tailored to your interests.</p>
+                </details>
+            </div>
+        </div>
     </section>
 
     <!-- Footer -->
