@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drawing App</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- React and ReactDOM CDNs (updated to latest stable versions) -->
+  <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+  <!-- Babel CDN for JSX transformation -->
+  <script src="https://unpkg.com/@babel/standalone@7.25.6/babel.min.js"></script>
+  <style>
+    canvas {
+      border: 2px solid #4b5563;
+      border-radius: 8px;
+      cursor: crosshair;
+      background: white; /* Ensure canvas has a visible background */
+    }
+    .toolbox {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      padding: 1rem;
+      background: #1f2937;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+    button, input {
+      transition: all 0.2s ease-in-out;
+    }
+    button:hover, input:hover {
+      transform: scale(1.05);
+    }
+    .error {
+      color: red;
+      font-weight: bold;
+      margin: 1rem;
+    }
+  </style>
+</head>
+<body class="bg-gray-900 flex flex-col items-center justify-center min-h-screen text-white">
+  <div id="root"></div>
+  <div id="error" className="error"></div>
+  <script type="text/babel">
+    // Import React hooks
+    const { useState, useEffect, useRef } = React;
+
+    // Komponen utama aplikasi gambar
+    const DrawingApp = () => {
+      // Referensi ke elemen canvas
+      const canvasRef = useRef(null);
+      // State untuk status menggambar
+      const [isDrawing, setIsDrawing] = useState(false);
+      // State untuk warna kuas
+      const [color, setColor] = useState('#000000');
+      // State untuk ukuran kuas
+      const [brushSize, setBrushSize] = useState(5);
+      // State untuk mode penghapus
+      const [isEraser, setIsEraser] = useState(false);
+      // State untuk menyimpan riwayat gambar (undo/redo)
+      const [history, setHistory] = useState([]);
+      // State untuk posisi index riwayat saat ini
+      const [historyIndex, setHistoryIndex] = useState(-1);
+      // State untuk pesan error
+      const [error, setError] = useState('');
+
+      // Inisialisasi canvas saat komponen pertama kali dirender
+      useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) {
+          setError('Canvas element not found');
+          console.error('Canvas element not found');
+          return;
+        }
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          setError('Failed to get 2D context');
+          console.error('Failed to get 2D context');
+          return;
+        }
+        try {
+          // Set ukuran canvas
+          canvas.width = 800;
+          canvas.height = 600;
+          // Set ujung garis bulat
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          // Isi background canvas dengan putih
+          ctx.fillStyle = 'white';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          // Simpan state awal ke history
+          saveState();
+          console.log('Canvas initialized successfully');
+        } catch (err) {
+          setError('Error initializing canvas: ' + err.message);
+          console.error('Error initializing canvas:', err);
+        }
+      }, []);
+
+      // Fungsi untuk menyimpan snapshot canvas ke history
+      const saveState = () => {
+        try {
+          const canvas = canvasRef.current;
+          // Potong history jika user melakukan undo lalu menggambar lagi
+          const newHistory = history.slice(0, historyIndex + 1);
+          // Simpan gambar canvas dalam bentuk dataURL
+          newHistory.push(canvas.toDataURL());
+          setHistory(newHistory);
+          setHistoryIndex(newHistory.length - 1);
+          console.log('State saved, history length:', newHistory.length);
+        } catch (err) {
+          setError('Error saving state: ' + err.message);
+          console.error('Error saving state:', err);
+        }
+      };
+
+      // Fungsi undo: kembali ke gambar sebelumnya
+      const undo = () => {
+        if (historyIndex > 0) {
+          setHistoryIndex(prev => prev - 1);
+          const canvas = canvasRef.current;
+          const ctx = canvas.getContext('2d');
+          const img = new Image();
+          img.src = history[historyIndex - 1];
+          img.onload = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+            console.log('Undo to index:', historyIndex - 1);
+          };
+          img.onerror = () => {
+            setError('Error loading undo image');
+            console.error('Error loading undo image');
+          };
+        }
+      };
+
+      // Fungsi redo: maju ke gambar berikutnya
+      const redo = () => {
+        if (historyIndex < history.length - 1) {
+          setHistoryIndex(prev => prev + 1);
+          const canvas = canvasRef.current;
+          const ctx = canvas.getContext('2d');
+          const img = new Image();
+          img.src = history[historyIndex + 1];
+          img.onload = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+            console.log('Redo to index:', historyIndex + 1);
+          };
+          img.onerror = () => {
+            setError('Error loading redo image');
+            console.error('Error loading redo image');
+          };
+        }
+      };
+
+      // Mulai menggambar (saat mouse/touch ditekan)
+      const startDrawing = (e) => {
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
+        try {
+          ctx.beginPath();
+          ctx.lineWidth = brushSize;
+          ctx.strokeStyle = isEraser ? 'white' : color;
+          const { x, y } = getCoordinates(e);
+          ctx.moveTo(x, y);
+          setIsDrawing(true);
+          console.log('Drawing started at:', x, y);
+        } catch (err) {
+          setError('Error starting drawing: ' + err.message);
+          console.error('Error starting drawing:', err);
+        }
+      };
+
+      // Proses menggambar (saat mouse/touch digerakkan)
+      const draw = (e) => {
+        if (!isDrawing) return;
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
+        try {
+          const { x, y } = getCoordinates(e);
+          ctx.lineTo(x, y);
+          ctx.stroke();
+        } catch (err) {
+          setError('Error during drawing: ' + err.message);
+          console.error('Error during drawing:', err);
+        }
+      };
+
+      // Selesai menggambar (saat mouse/touch dilepas)
+      const stopDrawing = () => {
+        if (isDrawing) {
+          const canvas = canvasRef.current;
+          canvas.getContext('2d').closePath();
+          setIsDrawing(false);
+          saveState();
+          console.log('Drawing stopped');
+        }
+      };
+
+      // Mendapatkan posisi x, y relatif terhadap canvas
+      const getCoordinates = (e) => {
+        const canvas = canvasRef.current;
+        const rect = canvas.getBoundingClientRect();
+        let x, y;
+        if (e.type.includes('touch')) {
+          x = e.touches[0].clientX - rect.left;
+          y = e.touches[0].clientY - rect.top;
+        } else {
+          x = e.clientX - rect.left;
+          y = e.clientY - rect.top;
+        }
+        return { x, y };
+      };
+
+      // Menghapus seluruh gambar di canvas
+      const clearCanvas = () => {
+        try {
+          const canvas = canvasRef.current;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = 'white';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          saveState();
+          console.log('Canvas cleared');
+        } catch (err) {
+          setError('Error clearing canvas: ' + err.message);
+          console.error('Error clearing canvas:', err);
+        }
+      };
+
+      // Mengaktifkan/menonaktifkan mode penghapus
+      const toggleEraser = () => {
+        setIsEraser(!isEraser);
+        console.log('Eraser toggled:', !isEraser);
+      };
+
+      // Render UI aplikasi
+      return (
+        <div className="flex flex-col items-center">
+          {/* Tampilkan error jika ada */}
+          {error && <div className="error">{error}</div>}
+          {/* Toolbox: warna, ukuran kuas, eraser, undo, redo, clear */}
+          <div className="toolbox">
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-semibold">Color:</label>
+              <input
+                type="color"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                className="w-10 h-10 rounded"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-semibold">Brush Size:</label>
+              <input
+                type="range"
+                min="1"
+                max="50"
+                value={brushSize}
+                onChange={(e) => setBrushSize(e.target.value)}
+                className="w-32"
+              />
+              <span>{brushSize}px</span>
+            </div>
+            <button
+              onClick={toggleEraser}
+              className={`px-4 py-2 rounded ${isEraser ? 'bg-red-500' : 'bg-blue-500'} hover:bg-opacity-80`}
+            >
+              {isEraser ? 'Switch to Brush' : 'Eraser'}
+            </button>
+            <button
+              onClick={undo}
+              disabled={historyIndex <= 0}
+              className="px-4 py-2 bg-gray-500 rounded disabled:opacity-50 hover:bg-opacity-80"
+            >
+              Undo
+            </button>
+            <button
+              onClick={redo}
+              disabled={historyIndex >= history.length - 1}
+              className="px-4 py-2 bg-gray-500 rounded disabled:opacity-50 hover:bg-opacity-80"
+            >
+              Redo
+            </button>
+            <button
+              onClick={clearCanvas}
+              className="px-4 py-2 bg-red-600 rounded hover:bg-opacity-80"
+            >
+              Clear Canvas
+            </button>
+          </div>
+          {/* Area canvas untuk menggambar */}
+          <canvas
+            ref={canvasRef}
+            onMouseDown={startDrawing}
+            onMouseMove={draw}
+            onMouseUp={stopDrawing}
+            onMouseOut={stopDrawing}
+            onTouchStart={startDrawing}
+            onTouchMove={draw}
+            onTouchEnd={stopDrawing}
+            className="bg-white"
+          ></canvas>
+        </div>
+      );
+    };
+
+    // Render komponen DrawingApp ke elemen root
+    try {
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(<DrawingApp />);
+      console.log('React app rendered');
+    } catch (err) {
+      document.getElementById('error').innerText = 'Error rendering app: ' + err.message;
+      console.error('Error rendering app:', err);
+    }
+  </script>
+</body>
+</html>
